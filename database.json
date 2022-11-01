@@ -1,1 +1,12 @@
-{}
+{
+  "uid": 1,
+  "data": {
+    "1": {
+      "timestamp": "29-10-2022 | 17:58:31",
+      "mode": "sender",
+      "amount": "12",
+      "from": "siddhu",
+      "to": "me"
+    }
+  }
+}

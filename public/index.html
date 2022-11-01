@@ -9,6 +9,25 @@
     <title>Financial Tracker</title>
 </head>
 <body>
-    <h1>Howdy?</h1>
+    <form id="db-form">
+        <select name="mode" id="mode" onchange="changeMode()">
+            <option value="sender">Send</option>
+            <option value="receiver">Receive</option>
+        </select>
+        <div id="mode-send" style="display:none;">
+            <label for="to">To: </label>
+            <input type="text" name="to">
+        </div>
+        <div id="mode-receive" style="display:none;">
+            <label for="from">From: </label>
+            <input type="text" name="from">
+        </div>
+        <label for="amount">Amount: </label>
+        <input type="number" name="amount">
+        <label for="remarks">Remarks: </label>
+        <input type="text" name="remarks">
+        <input type="submit" value="Submit">
+    </form>
+    <div id="data-table"></div>
 </body>
 </html>
