@@ -1,19 +1,8 @@
-const dbForm = document.getElementById('db-form');
-const dataTable = document.getElementById('data-table');
 
-function changeMode(){
-    let mode = document.getElementById("mode").value
-    if (mode == "receiver"){
-        document.getElementBy
-    }
+function $(id){
+    return document.getElementById(id)
 }
-
-dbForm.addEventListener('submit',(e)=>{
-    e.preventDefault() // overrides default submission. results in error if deleted.
-    const data = Object.fromEntries(new FormData(e.target).entries()); // Converts form data into key value pairs for us.
-    let date = new Date()
-    let timestamp = `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()} | ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-    data.timestamp = timestamp
+function POST(apiEndpoint,data,callback){
     let postOptions = {
         method : 'POST',
         headers : {
@@ -21,27 +10,27 @@ dbForm.addEventListener('submit',(e)=>{
         },
         body : JSON.stringify(data)
     }
-    fetch("http://localhost:3000/data",postOptions).then((response) => response.json())
-    .then((data) => {console.log("Sent data!")})
+    fetch(apiEndpoint,postOptions).then(response =>response.json()).then((data)=>{
+        callback(data)
+    })
+}
+
+const apiEndpoint = 'http://localhost:3000/'
+$('data-form').addEventListener('submit', (e)=>{
+    e.preventDefault()
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    let timestamp = new Date()
+    let timeString = timestamp.toLocaleTimeString([],{hour12 : false ,hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    let dateString = timestamp.toLocaleDateString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit'})
+    let time = dateString + " | " + timeString
+    data.Timestamp = time
+    POST(apiEndpoint+'data',data,(data)=>{
+        console.log(data)
+    })
 })
 
 
-fetch("http://localhost:3000/data").then((response) => response.json()).then((data) => {
-    dataTable.innerHTML = ``
-    let string = ''
-    console.log(dataTable)
-    string += '<tr>'
-    for(let col in data.data[1]) {
-        string += `<th>${col}</th>`
-    }
-    string += '</tr>'
-    for(let row in data.data){
-        string += `<tr>`
-        for(let col in data.data[row]){
-            string += `<td>${data.data[row][col]}</td>`
-        }
-        string += `</tr>`
-    }
-    dataTable.innerHTML = "<table>" + string + "</table>"
-    
+fetch(apiEndpoint+'data').then((res)=>res.json()).then((data)=>{
+    console.log(data.data)
 })
+

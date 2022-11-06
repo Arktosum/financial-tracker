@@ -1,62 +1,57 @@
 const express = require('express');
-let app = express();
-let path = require('path');
-let fs = require('fs');
-const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended: true }));
+const path = require('path');
+const cors = require('cors');
+const fs = require('fs');
 
-app.use(express.static(path.join(__dirname, 'public')))
-app.use(express.json());
-app.get("/",(req, res) => {
-    
-})
-
-app.get("/data",(req, res) => {
-    readJSON('database.json',(data) => {
-        res.send(data);
-    })
-})
-
-
-function emptyObject(obj){
-    return Object.keys(obj).length === 0 && obj.constructor === Object;
-}
-app.post("/data",(req, res) => {
-    let data = req.body
-    console.log(data)
-    readJSON('database.json',(json) => {
-        if(emptyObject(json)){
-            console.log("Empty!")
-            json.uid = 0
-            json.data = {}
-        }
-        json.uid += 1
-        json.data[json.uid] = {
-                    'Timestamp' : data.timestamp,
-                    'Mode' : data.mode,
-                    'Amount' : data.amount,
-                    'Remarks' : data.receiver,
-                    'From' : data.from,
-                    'To' : data.to
-                    }
-        
-        writeJSON('database.json',json)
-    })
-})
-
+const server = express();
 const PORT = 3000;
 
-app.listen(PORT,(host)=>{
-    console.log(`Listening on http://localhost:${PORT}`)
+server.use(express.static(path.join(__dirname, 'public')))
+server.use(express.json())
+server.use(cors())
+
+
+const DBPath = 'database.json'
+server.post('/data',(req,res)=>{
+    let data = req.body
+    readFile(DBPath,(err,DATA)=>{
+        let prev_data = DATA
+        if(isEmptyObj(prev_data)){
+            if(!('uid' in prev_data)){
+                prev_data['uid'] = 0
+            }
+        }
+        prev_data['uid']++
+        if(!('data' in prev_data)){
+            prev_data['data'] = {}
+        }
+        prev_data['data'][prev_data['uid']] = data
+        console.log(prev_data)
+        writeFile(DBPath,prev_data)
+    })
+})
+server.get('/data',(req, res) =>{
+    readFile(DBPath,(err, data) =>{
+        res.send(data)
+    })
 })
 
-function writeJSON(path,data,callback=()=>{}) {
-    fs.writeFile(path, JSON.stringify(data,null, 2),callback)
+server.listen(PORT,()=>{
+    console.log(`Listening on port: http://localhost:${PORT}`)
+})
+
+
+function readFile(path,func){
+    fs.readFile(path,(err,data)=>{
+        func(err,JSON.parse(data))
+    })
 }
-function readJSON(path,callback=()=>{}){
-    fs.readFile(path, 'utf8',(err,data)=>{
-        if(err) throw err;
-        data = JSON.parse(data)
-        callback(data)
-    });
+function writeFile(path,data){
+    fs.writeFile(path,JSON.stringify(data,undefined,4),(err)=>{
+        if(err){throw err;}
+    })
+}
+
+function isEmptyObj(obj){
+    return obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype
 }
